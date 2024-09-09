@@ -1,0 +1,410 @@
+:root {
+  /* Light mode colors */
+  --background-color: #ffffff;
+  --text-color: #000000;
+  --button-bg-color: #007bff;
+  --button-text-color: #ffffff;
+  --border-color: #ccc;
+  --input-bg-color: #ffffff;
+  --tab-inactive-color: #e0e0e0;
+  --dropdown-bg-color: #ffffff;
+  --dropdown-text-color: #000000;
+}
+
+body.dark-mode {
+  /* Dark mode colors */
+  --background-color: #1e1e1e;
+  --text-color: #ffffff;
+  --button-bg-color: #555555;
+  --button-text-color: #ffffff;
+  --border-color: #444444;
+  --input-bg-color: #2e2e2e;
+  --tab-inactive-color: #333333;
+  --dropdown-bg-color: #2e2e2e;
+  --dropdown-text-color: #ffffff;
+}
+
+body {
+  font-family: Arial, sans-serif;
+  margin: 0;
+  padding: 0;
+  background-color: var(--background-color);
+  color: var(--text-color);
+  transition: background-color 0.5s, color 0.5s;
+}
+
+.tab-container {
+  display: flex;
+  background-color: var(--background-color);
+  padding: 0 10px;
+  border-bottom: 1px solid var(--border-color);
+  align-items: center;
+}
+
+.tabs-group {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+}
+
+.tab {
+  padding: 5px 15px;
+  margin: 3px 0;
+  border: 1px solid var(--border-color);
+  border-bottom: none;
+  border-radius: 5px 5px 0 0;
+  background-color: var(--tab-inactive-color);
+  cursor: pointer;
+  font-size: 14px;
+  transition: background-color 0.3s, color 0.3s;
+}
+
+.tab.active {
+  background-color: var(--background-color);
+  border-bottom: 1px solid var(--background-color);
+  color: var(--text-color);
+}
+
+.tab:hover {
+  background-color: #d1d1d1;
+}
+
+.theme-toggle-btn {
+  padding: 5px 15px;
+  border: 1px solid var(--border-color);
+  border-bottom: none;
+  border-radius: 5px 5px 0 0;
+  background-color: var(--tab-inactive-color);
+  cursor: pointer;
+  font-size: 14px;
+  transition: background-color 0.3s, color 0.3s;
+  margin-left: auto; /* Ensures it's positioned at the far right */
+}
+
+.theme-toggle-btn:hover {
+  background-color: #d1d1d1;
+}
+
+#content-area {
+  padding: 15px;
+  border: 1px solid var(--border-color);
+}
+
+#test-content,
+#editor-content {
+  display: none;
+}
+
+.input-group {
+  margin-bottom: 15px;
+}
+
+label {
+  display: block;
+  margin-bottom: 5px;
+  font-weight: bold;
+}
+
+#function-input {
+  width: 80%; /* Make the function input wider */
+  padding: 8px;
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  font-size: 14px;
+  margin-bottom: 10px;
+  background-color: var(--input-bg-color);
+  color: var(--text-color);
+  transition: background-color 0.5s, color 0.5s, border-color 0.5s;
+}
+
+#add-test-btn,
+#export-test-btn {
+  padding: 8px 15px;
+  border: none;
+  background-color: var(--button-bg-color);
+  color: var(--button-text-color);
+  border-radius: 4px;
+  cursor: pointer;
+  margin: 10px 0;
+  transition: background-color 0.3s;
+}
+
+#export-test-btn {
+  background-color: #28a745; /* Green color for export button */
+}
+
+#add-test-btn:hover {
+  background-color: #0056b3;
+}
+
+#export-test-btn:hover {
+  background-color: #218838;
+}
+
+ul {
+  list-style: none;
+  padding: 0;
+}
+
+li {
+  padding: 10px;
+  margin: 10px 0;
+  background-color: var(--background-color);
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  transition: background-color 0.5s, border-color 0.5s;
+}
+
+.test-input-group {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.test-row {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.test-input-group input {
+  padding: 8px;
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  font-size: 14px;
+  flex: 1;
+  background-color: var(--input-bg-color);
+  color: var(--text-color);
+  transition: background-color 0.5s, color 0.5s, border-color 0.5s;
+}
+
+input[type="text"],
+select {
+  padding: 8px;
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  font-size: 14px;
+  background-color: var(--dropdown-bg-color);
+  color: var(--dropdown-text-color);
+  transition: background-color 0.5s, color 0.5s, border-color 0.5s;
+}
+
+select {
+  appearance: auto; /* Keeps default dropdown arrow */
+  height: 38px; /* Adjusted height to match text inputs */
+}
+
+select:focus,
+input[type="text"]:focus {
+  outline: none;
+  border-color: var(--button-bg-color);
+}
+
+.add-param-btn {
+  background-color: #4CAF50;
+  color: white;
+  padding: 8px 12px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  margin-top: 5px;
+  transition: background-color 0.2s, color 0.2s;
+}
+
+.add-param-btn:hover {
+  background-color: #45a049;
+}
+
+.remove-param-btn {
+  background-color: #f44336;
+  color: white;
+  padding: 5px 10px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  margin-left: 5px;
+  transition: background-color 0.2s, color 0.2s;
+}
+
+.remove-param-btn:hover {
+  background-color: #d32f2f;
+}
+
+.remove-btn {
+  align-self: flex-end;
+  background-color: #e74c3c;
+  color: white;
+  border: none;
+  padding: 8px 15px;
+  border-radius: 4px;
+  cursor: pointer;
+  margin: 10px 0;
+  transition: background-color 0.2s, color 0.2s;
+  display: block;
+  font-size: 14px; /* Adjusted font size for better proportion */
+}
+
+
+.remove-btn:hover {
+  background-color: #c0392b;
+}
+
+.param-row,
+.test-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 5px;
+}
+
+/* Button Styling */
+.action-btn {
+  padding: 8px 15px;
+  border: none;
+  background-color: #007bff;
+  color: white;
+  border-radius: 4px;
+  cursor: pointer;
+  margin: 10px 0;
+  transition: background-color 0.3s, color 0.3s;
+}
+
+.action-btn:hover {
+  background-color: #0056b3;
+}
+
+/* Styles for the script container and list */
+.script-container {
+  margin-top: 20px;
+  padding: 10px;
+  border: 1px solid var(--border-color);
+  border-radius: 5px;
+  background-color: var(--background-color);
+}
+
+.scripts-list {
+  list-style: none;
+  padding: 0;
+  margin-top: 10px;
+}
+
+.script-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 5px;
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  background-color: var(--input-bg-color);
+  margin-bottom: 5px;
+  color: var(--text-color);
+}
+
+/* Style for the Add Script button */
+#add-script-btn {
+  padding: 8px 15px;
+  border: 1px solid var(--border-color); /* Match the border color to the theme */
+  background-color: var(--button-bg-color);
+  color: var(--button-text-color);
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: background-color 0.3s, color 0.3s, border-color 0.3s;
+  outline: none; /* Remove default outline */
+}
+
+#add-script-btn:hover {
+  background-color: #0056b3; /* Adjust hover color if needed */
+  border-color: var(--button-bg-color); /* Change border on hover if necessary */
+}
+
+/* Adjust outline or focus state if needed */
+#add-script-btn:focus {
+  border-color: var(--button-bg-color);
+  outline: none; /* Remove focus outline */
+}
+
+/* Style the script list item */
+.script-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px;
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  background-color: var(--input-bg-color);
+  position: relative;
+  margin-bottom: 10px;
+}
+
+/* Style the filename to be on the top-left */
+.script-filename {
+  position: absolute;
+  top: 10px;
+  left: 15px;
+  margin: 0;
+  font-size: 24px; /* Adjust the size as needed */
+  font-weight: 200;
+  color: var(--text-color);
+  flex: 1;
+  margin-right: 10px;
+}
+
+/* Style the script list item */
+.script-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px;
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  background-color: var(--input-bg-color);
+  position: relative;
+  margin-bottom: 10px;
+  height: 96px;
+}
+
+/* Style the edit button */
+.edit-btn {
+  background-color: var(--button-bg-color);
+  border: none;
+  cursor: pointer;
+  font-size: 18px;
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  color: var(--text-color);
+  border-radius: 4px;
+  height: 36px;
+  width: 36px;
+}
+
+.edit-btn:hover {
+  color: #3498db; /* Highlight color on hover */
+}
+
+.scriptremove-btn {
+  align-self: flex-end; /* Aligns the button to the lower right */
+  background-color: #e74c3c;
+  color: white;
+  border: none;
+  padding: 8px 15px;
+  border-radius: 4px;
+  cursor: pointer;
+  margin: 10px 0;
+  transition: background-color 0.2s, color 0.2s;
+  display: block;
+  font-size: 14px;
+  position: absolute;
+  bottom: 5px;
+  right: 5px;
+}
+
+.remove-btn:hover {
+  background-color: #d32f2f;
+}

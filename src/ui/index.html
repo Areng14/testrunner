@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Test and Editor App</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <!-- Top Navigation Bar with Chrome-like Tabs -->
+  <!-- Tab Container -->
+  <div class="tab-container">
+    <div class="tabs-group">
+      <div class="tab active" id="test-tab">Test</div>
+      <div class="tab" id="editor-tab">Editor</div>
+      <button id="theme-toggle-btn" class="tab theme-toggle-btn" aria-label="Toggle Theme">🌙</button>
+    </div>
+  </div>
+
+  <!-- Content Area -->
+  <div id="content-area">
+    <!-- Test Tab Content -->
+    <div id="test-content">
+      <h2>Script Testing</h2>
+      <button id="load-test-btn" class="action-btn">Load Tests</button>
+      <button id="run-test-btn" class="action-btn">Run Tests</button>
+      <!-- Add this in the desired location of your existing HTML -->
+      <h3>Scripts</h3>
+      <div id="script-container" class="script-container">
+        <button id="add-script-btn">Add Script</button>
+        <ul id="scripts-list-ul" class="scripts-list"></ul>
+      </div>      
+    </div>
+
+    <!-- Editor Tab Content -->
+    <div id="editor-content" style="display: none;">
+      <h2>Tests Editor</h2>
+      <!-- Input field for specifying the function to test -->
+      <div class="input-group">
+        <label for="function-input">Function to Test:</label>
+        <input type="text" id="function-input" placeholder="Enter function name (e.g., adder)">
+      </div>
+
+      <!-- Add Test Button -->
+      <button id="add-test-btn">Add Test</button>
+
+      <!-- Test List Container -->
+      <ul id="test-list-ul"></ul>
+
+      <!-- Export Test Button -->
+      <button id="export-test-btn">Export Tests</button>
+    </div>
+  </div>
+
+  <script src="renderer.js"></script>
+</body>
+</html>

@@ -1,0 +1,15 @@
+{
+  "name": "testrunner_ui",
+  "version": "1.0.0",
+  "description": "A UI version of test runner.",
+  "main": "./src/main.js",
+  "scripts": {
+    "start" : "npx electron .",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Areng",
+  "license": "ISC",
+  "dependencies": {
+    "electron": "^32.0.2"
+  }
+}
