@@ -1,7 +1,9 @@
 const { app, BrowserWindow, ipcMain, dialog, Menu } = require('electron');
 const fs = require('fs');
+const os = require('os');
 const path = require('path');
 const { exec } = require('child_process');
+const runPythonTests = require('./tester')
 
 function createWindow() {
   const win = new BrowserWindow({
@@ -45,26 +47,22 @@ function createWindow() {
 function runTests(jsonData) {
   const { testfunc, tests, scriptPaths } = jsonData;
 
+  //write temp json
+  const tempDir = os.tmpdir();
+  const fileName = `temp_testjson_${Date.now()}.json`;
+  const filePath = path.join(tempDir, fileName);
+
+  const alltests = {}
+  // Write the JSON data to the file
+  fs.writeFileSync(filePath, JSON.stringify(jsonData, null, 2));
+
   Object.entries(scriptPaths).forEach(([displayName, realPath]) => {
-    console.log(`Testing function: ${testfunc}`);
-    console.log(`File path: ${realPath}`);
-
-    Object.entries(tests).forEach(([paramStr, [expectedOutput, expectedType]]) => {
-      const params = JSON.parse(paramStr); // Convert parameter string back to array
-
-      console.log('Parameters and their types:');
-      params.forEach(([paramValue, paramType], index) => {
-        console.log(`  Parameter ${index + 1}:`);
-        console.log(`    Value: ${paramValue}`);
-        console.log(`    Type: ${paramType}`);
-      });
-
-      console.log('Expected output:');
-      console.log(`  Value: ${expectedOutput}`);
-      console.log(`  Type: ${expectedType}`);
-      console.log('-----------------------------');
-    });
+    
+    alltests[displayName] = runPythonTests(filePath, realPath);
   });
+
+  fs.unlinkSync(filePath);
+  console.log(alltests)
 }
 
 // IPC listener to run tests when the 'run-tests' event is received
