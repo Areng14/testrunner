@@ -306,10 +306,10 @@ document.addEventListener('DOMContentLoaded', () => {
       alert('This file has already been added.'); // Alert the user that the file is already added
       return; // Exit the function to avoid adding a duplicate
     }
-
+  
     const li = document.createElement('li');
     li.className = 'script-item';
-
+  
     // Display only the base name of the file
     const filename = document.createElement('span');
     filename.className = 'script-filename';
@@ -318,10 +318,10 @@ document.addEventListener('DOMContentLoaded', () => {
       textContent = textContent.slice(0, 64) + '...';
     }
     filename.textContent = textContent;
-
+  
     // Store the real path in the dictionary
     scriptPaths[textContent] = filePath;
-
+  
     // Create the edit button
     const editBtn = document.createElement('button');
     editBtn.className = 'edit-btn';
@@ -330,7 +330,7 @@ document.addEventListener('DOMContentLoaded', () => {
     editBtn.addEventListener('click', () => {
       ipcRenderer.send('edit-file', scriptPaths[textContent]);
     });
-
+  
     // Create the remove button
     const removeBtn = document.createElement('button');
     removeBtn.textContent = 'Remove';
@@ -340,15 +340,53 @@ document.addEventListener('DOMContentLoaded', () => {
       delete scriptPaths[textContent];
       li.remove();
       // Remove from JSON data as well if needed
-      saveTests();
     });
-
-    // Append the filename, edit button, and remove button
+  
+    // Create a div for displaying the test summary
+    const resultSummary = document.createElement('div');
+    resultSummary.className = 'result-summary';
+    resultSummary.textContent = 'Results: -/- (-%)'; // Initial placeholder text
+  
+    // Append the filename, edit button, remove button, and result summary
     li.appendChild(filename);
     li.appendChild(editBtn);
     li.appendChild(removeBtn);
+    li.appendChild(resultSummary);
     scriptsList.appendChild(li);
   }
+  
+  // Function to update the test summary
+  function updateTestSummary(displayName, summary) {
+    const scriptItems = document.querySelectorAll('.script-item');
+    scriptItems.forEach((item) => {
+      const filename = item.querySelector('.script-filename').textContent;
+      if (filename.includes(displayName)) {
+        const resultSummary = item.querySelector('.result-summary');
+        const { passed, total } = summary;
+        const percentage = ((passed / total) * 100).toFixed(0);
+        resultSummary.textContent = `${passed}/${total} (${percentage}%)`;
+  
+        // Set color based on performance percentage
+        if (percentage >= 80) {
+          // Good performance (80% or higher)
+          resultSummary.style.color = '#32a852'; // You can customize this color as desired
+        } else if (percentage >= 50) {
+          // Moderate performance (50% to 79%)
+          resultSummary.style.color = '#fcba03';
+        } else {
+          // Poor performance (below 50%)
+          resultSummary.style.color = '#eb4034';
+        }
+      }
+    });
+  }  
+
+  // Call this function after receiving test results
+  ipcRenderer.on('test-results', (event, results) => {
+    for (const [displayName, result] of Object.entries(results)) {
+      updateTestSummary(displayName, result.summary);
+    }
+  });
 
   // Listener to handle opening the file in the default text editor
   ipcRenderer.on('edit-file', (event, filePath) => {

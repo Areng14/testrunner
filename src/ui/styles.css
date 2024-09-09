@@ -240,7 +240,7 @@ input[type="text"]:focus {
   background-color: #e74c3c;
   color: white;
   border: none;
-  padding: 8px 15px;
+  padding: 8px 8px;
   border-radius: 4px;
   cursor: pointer;
   margin: 10px 0;
@@ -404,6 +404,15 @@ input[type="text"]:focus {
   bottom: 5px;
   right: 5px;
 }
+
+.result-summary {
+  position: absolute;
+  bottom: 8px;
+  left: 14px;
+  font-size: 18px;
+  color: #888;
+}
+
 
 .remove-btn:hover {
   background-color: #d32f2f;

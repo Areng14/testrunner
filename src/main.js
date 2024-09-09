@@ -80,9 +80,18 @@ async function runTests(jsonData) {
   return alltests;
 }
 
-// IPC listener to run tests when the 'run-tests' event is received
-ipcMain.on('run-tests', (event, jsonData) => {
-  runTests(jsonData);
+// Handle request from renderer to run tests
+ipcMain.on('run-tests', async (event, jsonData) => {
+  try {
+    // Run the tests and collect results
+    const results = await runTests(jsonData);
+
+    // Send the results back to the renderer process
+    event.reply('test-results', results); // Sends the results back to the renderer
+  } catch (error) {
+    console.error('Error running tests:', error);
+    event.reply('test-results', { error: 'Failed to run tests' });
+  }
 });
 
 ipcMain.on('edit-file', (event, filePath) => {
