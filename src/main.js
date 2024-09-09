@@ -44,25 +44,40 @@ function createWindow() {
 }
 
 // Function to run tests and display their details
-function runTests(jsonData) {
+async function runTests(jsonData) {
   const { testfunc, tests, scriptPaths } = jsonData;
 
-  //write temp json
+  // Create a temporary file for the JSON data
   const tempDir = os.tmpdir();
   const fileName = `temp_testjson_${Date.now()}.json`;
   const filePath = path.join(tempDir, fileName);
 
-  const alltests = {}
   // Write the JSON data to the file
   fs.writeFileSync(filePath, JSON.stringify(jsonData, null, 2));
 
-  Object.entries(scriptPaths).forEach(([displayName, realPath]) => {
-    
-    alltests[displayName] = runPythonTests(filePath, realPath);
-  });
+  // Object to store all test results
+  const alltests = {};
 
+  // Iterate over each script path and run the Python tests
+  for (const [displayName, realPath] of Object.entries(scriptPaths)) {
+    try {
+      // Await the result of runPythonTests
+      const testResult = await runPythonTests(filePath, realPath);
+      alltests[displayName] = testResult;
+    } catch (error) {
+      console.error(`Failed to run tests for ${displayName}: ${error}`);
+      alltests[displayName] = { error: error.message };
+    }
+  }
+
+  // Clean up the temporary JSON file
   fs.unlinkSync(filePath);
-  console.log(alltests)
+
+  // Log the collected test results
+  console.log('Results:', JSON.stringify(alltests, null, 2));
+
+  // Return the results if needed elsewhere
+  return alltests;
 }
 
 // IPC listener to run tests when the 'run-tests' event is received
