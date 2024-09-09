@@ -182,8 +182,26 @@ ipcMain.handle('load-json-data', async () => {
   }
 });
 
-app.whenReady().then(createWindow);
+function checkPythonInstallation() {
+  exec('python --version', (error, stdout, stderr) => {
+    if (error || stderr) {
+      dialog.showErrorBox(
+        'Python Not Found',
+        'Python is not installed on this system. Please install Python to use this application.'
+      );
+      app.quit(); // Quit the app if Python is not installed
+      return false;
+    }
+    console.log(`Python version detected: ${stdout.trim()}`);
+    return true;
+  });
+}
 
+app.whenReady().then(() => {
+  if (checkPythonInstallation()) {
+    createWindow();
+  }
+});
 app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') {
     app.quit();
