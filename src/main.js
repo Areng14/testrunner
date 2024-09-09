@@ -3,7 +3,7 @@ const fs = require('fs');
 const os = require('os');
 const path = require('path');
 const { exec } = require('child_process');
-const runPythonTests = require('./tester')
+const runPythonTests = require('./tester');
 
 function createWindow() {
   const win = new BrowserWindow({
@@ -41,6 +41,25 @@ function createWindow() {
   ]);
 
   Menu.setApplicationMenu(menu);
+}
+
+// Function to check if Python is installed
+function checkPythonInstallation() {
+  return new Promise((resolve, reject) => {
+    exec('python --version', (error, stdout, stderr) => {
+      if (error || stderr) {
+        dialog.showErrorBox(
+          'Python Not Found',
+          'Python is not installed on this system. Please install Python to use this application.'
+        );
+        app.quit(); // Quit the app if Python is not installed
+        reject(false);
+      } else {
+        console.log(`Python version detected: ${stdout.trim()}`);
+        resolve(true);
+      }
+    });
+  });
 }
 
 // Function to run tests and display their details
@@ -182,26 +201,17 @@ ipcMain.handle('load-json-data', async () => {
   }
 });
 
-function checkPythonInstallation() {
-  exec('python --version', (error, stdout, stderr) => {
-    if (error || stderr) {
-      dialog.showErrorBox(
-        'Python Not Found',
-        'Python is not installed on this system. Please install Python to use this application.'
-      );
-      app.quit(); // Quit the app if Python is not installed
-      return false;
+app.whenReady().then(async () => {
+  try {
+    const pythonInstalled = await checkPythonInstallation();
+    if (pythonInstalled) {
+      createWindow();
     }
-    console.log(`Python version detected: ${stdout.trim()}`);
-    return true;
-  });
-}
-
-app.whenReady().then(() => {
-  if (checkPythonInstallation()) {
-    createWindow();
+  } catch (error) {
+    console.error('Python check failed:', error);
   }
 });
+
 app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') {
     app.quit();
