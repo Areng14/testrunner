@@ -299,94 +299,108 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
-  // Function to add an item to the scripts list
   function addScriptItem(filePath) {
-    // Check if the file path already exists in the scriptPaths
     if (Object.values(scriptPaths).includes(filePath)) {
-      alert('This file has already been added.'); // Alert the user that the file is already added
-      return; // Exit the function to avoid adding a duplicate
+        alert('This file has already been added.');
+        return;
     }
-  
+
     const li = document.createElement('li');
     li.className = 'script-item';
-  
-    // Display only the base name of the file
+
     const filename = document.createElement('span');
     filename.className = 'script-filename';
     let textContent = path.basename(filePath);
     if (textContent.length > 64) {
-      textContent = textContent.slice(0, 64) + '...';
+        textContent = textContent.slice(0, 64) + '...';
     }
     filename.textContent = textContent;
-  
-    // Store the real path in the dictionary
+
     scriptPaths[textContent] = filePath;
-  
-    // Create the edit button
+
     const editBtn = document.createElement('button');
     editBtn.className = 'edit-btn';
     editBtn.textContent = '📝';
     editBtn.title = 'Edit this file';
     editBtn.addEventListener('click', () => {
-      ipcRenderer.send('edit-file', scriptPaths[textContent]);
+        ipcRenderer.send('edit-file', scriptPaths[textContent]);
     });
-  
-    // Create the remove button
+
     const removeBtn = document.createElement('button');
     removeBtn.textContent = 'Remove';
     removeBtn.className = 'scriptremove-btn';
     removeBtn.addEventListener('click', () => {
-      // Remove the entry from the dictionary and the DOM
-      delete scriptPaths[textContent];
-      li.remove();
-      // Remove from JSON data as well if needed
+        delete scriptPaths[textContent];
+        li.remove();
     });
-  
-    // Create a div for displaying the test summary
-    const resultSummary = document.createElement('div');
+    
+    const summaryContainer = document.createElement('div');
+    summaryContainer.className = 'summary-container';
+
+    const resultSummary = document.createElement('span');
     resultSummary.className = 'result-summary';
-    resultSummary.textContent = 'Results: -/- (-%)'; // Initial placeholder text
-  
-    // Append the filename, edit button, remove button, and result summary
+    resultSummary.textContent = 'Results: 0/0 (0%)';
+
+    const dropdownBtn = document.createElement('button');
+    dropdownBtn.textContent = '🔽';
+    dropdownBtn.className = 'dropdown-btn';
+    dropdownBtn.addEventListener('click', () => {
+        const isExpanded = dropdownContent.classList.toggle('show');
+        dropdownBtn.textContent = isExpanded ? '🔼' : '🔽';
+    });
+
+    summaryContainer.appendChild(resultSummary);
+    summaryContainer.appendChild(dropdownBtn);
+
+    const dropdownContent = document.createElement('div');
+    dropdownContent.className = 'dropdown-content';
+    
     li.appendChild(filename);
     li.appendChild(editBtn);
     li.appendChild(removeBtn);
-    li.appendChild(resultSummary);
+    li.appendChild(summaryContainer);
+    li.appendChild(dropdownContent);
     scriptsList.appendChild(li);
   }
   
-  // Function to update the test summary
-  function updateTestSummary(displayName, summary) {
+  
+  function updateTestSummary(displayName, summary, details) {
     const scriptItems = document.querySelectorAll('.script-item');
     scriptItems.forEach((item) => {
       const filename = item.querySelector('.script-filename').textContent;
       if (filename.includes(displayName)) {
         const resultSummary = item.querySelector('.result-summary');
+        const dropdownContent = item.querySelector('.dropdown-content');
         const { passed, total } = summary;
         const percentage = ((passed / total) * 100).toFixed(0);
-        resultSummary.textContent = `${passed}/${total} (${percentage}%)`;
+        resultSummary.textContent = `Results: ${passed}/${total} (${percentage}%)`;
   
         // Set color based on performance percentage
         if (percentage >= 80) {
-          // Good performance (80% or higher)
-          resultSummary.style.color = '#32a852'; // You can customize this color as desired
+          resultSummary.style.color = 'green';
         } else if (percentage >= 50) {
-          // Moderate performance (50% to 79%)
-          resultSummary.style.color = '#fcba03';
+          resultSummary.style.color = 'orange';
         } else {
-          // Poor performance (below 50%)
-          resultSummary.style.color = '#eb4034';
+          resultSummary.style.color = 'red';
         }
+  
+        dropdownContent.innerHTML = '';
+        details.forEach((detail) => {
+          const detailItem = document.createElement('div');
+          detailItem.className = 'detail-item';
+          detailItem.textContent = `Test: ${detail.test} - ${detail.passed ? 'Passed' : 'Failed'}${detail.error ? ` (${detail.error})` : ''}`;
+          dropdownContent.appendChild(detailItem);
+        });
       }
     });
-  }  
-
-  // Call this function after receiving test results
+  }
+  
   ipcRenderer.on('test-results', (event, results) => {
     for (const [displayName, result] of Object.entries(results)) {
-      updateTestSummary(displayName, result.summary);
+      updateTestSummary(displayName, result.summary, result.results);
     }
   });
+  
 
   // Listener to handle opening the file in the default text editor
   ipcRenderer.on('edit-file', (event, filePath) => {

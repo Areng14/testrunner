@@ -79,7 +79,7 @@ body {
   cursor: pointer;
   font-size: 14px;
   transition: background-color 0.3s, color 0.3s;
-  margin-left: auto; /* Ensures it's positioned at the far right */
+  margin-left: auto;
 }
 
 .theme-toggle-btn:hover {
@@ -107,7 +107,7 @@ label {
 }
 
 #function-input {
-  width: 80%; /* Make the function input wider */
+  width: 80%;
   padding: 8px;
   border: 1px solid var(--border-color);
   border-radius: 4px;
@@ -131,7 +131,7 @@ label {
 }
 
 #export-test-btn {
-  background-color: #28a745; /* Green color for export button */
+  background-color: #28a745;
 }
 
 #add-test-btn:hover {
@@ -194,8 +194,8 @@ select {
 }
 
 select {
-  appearance: auto; /* Keeps default dropdown arrow */
-  height: 38px; /* Adjusted height to match text inputs */
+  appearance: auto;
+  height: 38px;
 }
 
 select:focus,
@@ -246,12 +246,11 @@ input[type="text"]:focus {
   margin: 10px 0;
   transition: background-color 0.2s, color 0.2s;
   display: block;
-  font-size: 14px; /* Adjusted font size for better proportion */
+  font-size: 14px;
 }
 
-
 .remove-btn:hover {
-  background-color: #c0392b;
+  background-color: #d32f2f;
 }
 
 .param-row,
@@ -262,7 +261,6 @@ input[type="text"]:focus {
   margin-top: 5px;
 }
 
-/* Button Styling */
 .action-btn {
   padding: 8px 15px;
   border: none;
@@ -278,7 +276,6 @@ input[type="text"]:focus {
   background-color: #0056b3;
 }
 
-/* Styles for the script container and list */
 .script-container {
   margin-top: 20px;
   padding: 10px;
@@ -295,81 +292,30 @@ input[type="text"]:focus {
 
 .script-item {
   display: flex;
+  flex-direction: column;
   justify-content: space-between;
-  align-items: center;
-  padding: 5px;
-  border: 1px solid var(--border-color);
-  border-radius: 4px;
-  background-color: var(--input-bg-color);
-  margin-bottom: 5px;
-  color: var(--text-color);
-}
-
-/* Style for the Add Script button */
-#add-script-btn {
-  padding: 8px 15px;
-  border: 1px solid var(--border-color); /* Match the border color to the theme */
-  background-color: var(--button-bg-color);
-  color: var(--button-text-color);
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 14px;
-  transition: background-color 0.3s, color 0.3s, border-color 0.3s;
-  outline: none; /* Remove default outline */
-}
-
-#add-script-btn:hover {
-  background-color: #0056b3; /* Adjust hover color if needed */
-  border-color: var(--button-bg-color); /* Change border on hover if necessary */
-}
-
-/* Adjust outline or focus state if needed */
-#add-script-btn:focus {
-  border-color: var(--button-bg-color);
-  outline: none; /* Remove focus outline */
-}
-
-/* Style the script list item */
-.script-item {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
+  align-items: flex-start;
   padding: 10px;
   border: 1px solid var(--border-color);
   border-radius: 4px;
   background-color: var(--input-bg-color);
   position: relative;
   margin-bottom: 10px;
+  min-height: 96px;
 }
 
-/* Style the filename to be on the top-left */
 .script-filename {
   position: absolute;
   top: 10px;
   left: 15px;
   margin: 0;
-  font-size: 24px; /* Adjust the size as needed */
+  font-size: 24px;
   font-weight: 200;
   color: var(--text-color);
   flex: 1;
   margin-right: 10px;
 }
 
-/* Style the script list item */
-.script-item {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 10px;
-  border: 1px solid var(--border-color);
-  border-radius: 4px;
-  background-color: var(--input-bg-color);
-  position: relative;
-  margin-bottom: 10px;
-  height: 96px;
-}
-
-/* Style the edit button */
 .edit-btn {
   background-color: var(--button-bg-color);
   border: none;
@@ -385,11 +331,11 @@ input[type="text"]:focus {
 }
 
 .edit-btn:hover {
-  color: #3498db; /* Highlight color on hover */
+  color: #3498db;
 }
 
 .scriptremove-btn {
-  align-self: flex-end; /* Aligns the button to the lower right */
+  align-self: flex-end;
   background-color: #e74c3c;
   color: white;
   border: none;
@@ -401,19 +347,81 @@ input[type="text"]:focus {
   display: block;
   font-size: 14px;
   position: absolute;
-  bottom: 5px;
+  top: 68px;
   right: 5px;
 }
 
 .result-summary {
   position: absolute;
-  bottom: 8px;
+  top: 88px;
   left: 14px;
   font-size: 18px;
   color: #888;
 }
 
+.summary-container {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+}
 
-.remove-btn:hover {
-  background-color: #d32f2f;
+.result-summary {
+  margin-right: 5px;
+}
+
+.dropdown-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 16px;
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  top: 88px;
+}
+
+.dropdown-content {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.3s ease-in-out, padding 0.3s ease-in-out;
+  padding: 0 10px; /* Set horizontal padding to prevent shifting */
+  margin-top: 96px; /* Ensure consistent space from the top */
+  box-sizing: border-box; /* Ensures padding and border do not affect alignment */
+}
+
+/* Expanded state */
+.dropdown-content.show {
+  max-height: 500px; /* Adjust this value based on your content size */
+  padding: 10px; /* Keep the padding consistent to avoid shifting */
+}
+
+.detail-item {
+  padding: 5px 0;
+  font-size: 14px;
+  color: var(--text-color);
+}
+
+/* Style for the Add Script button */
+#add-script-btn {
+  padding: 8px 15px;
+  border: 1px solid var(--border-color);
+  background-color: var(--button-bg-color);
+  color: var(--button-text-color);
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: background-color 0.3s, color 0.3s, border-color 0.3s;
+  outline: none;
+  margin-bottom: 10px;
+}
+
+#add-script-btn:hover {
+  background-color: #0056b3;
+  border-color: var(--button-bg-color);
+}
+
+#add-script-btn:focus {
+  border-color: var(--button-bg-color);
+  outline: none;
 }
