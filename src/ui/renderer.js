@@ -54,7 +54,7 @@ document.addEventListener('DOMContentLoaded', () => {
       if (tab.id === 'test-tab') {
         testContent.style.display = 'block';
         editorContent.style.display = 'none';
-      } else {
+      } else if (tab.id === 'editor-tab'){
         testContent.style.display = 'none';
         editorContent.style.display = 'block';
       }
