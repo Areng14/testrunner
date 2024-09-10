@@ -45,6 +45,14 @@ def parse_arg(arg):
         return json.loads(value)
     elif type_ == 'dict':
         return json.loads(value)
+    elif type_ == 'tuple':
+        return tuple(json.loads(value))
+    elif type_ == 'set':
+        return set(json.loads(value))
+    elif type_ == 'NoneType':
+        return None
+    elif type_ == 'bytes':
+        return bytes(value, encoding='utf-8')
     return value
 
 def check_test_in_file(script_path: str, tests: dict) -> list:
@@ -77,8 +85,19 @@ def parse_expected(expected: list):
     """Parse the expected output from JSON and determine its type."""
     try:
         value, type_str = expected
-        type_mapping = {'int': int, 'float': float, 'str': str, 'bool': bool}
+        type_mapping = {
+            'int': int,
+            'float': float,
+            'str': str,
+            'bool': bool,
+            'tuple': tuple,
+            'set': set,
+            'NoneType': type(None),
+            'bytes': bytes,
+        }
         expected_type = type_mapping.get(type_str, str)
+        if type_str == 'bytes':
+            return bytes(value, encoding='utf-8'), expected_type
         return expected_type(value), expected_type
     except Exception:
         return expected, str

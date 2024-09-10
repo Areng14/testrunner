@@ -2,7 +2,21 @@ const { ipcRenderer } = require('electron');
 const path = require('path');
 
 // Define the types array globally so it's accessible everywhere
-const types = ['any', 'int', 'float', 'str', 'list', 'dict', 'bool'];
+// List of common Python types
+const types = [
+  'any',        // Special placeholder type
+  'int',        // Integer numbers
+  'float',      // Floating-point numbers
+  'str',        // String of characters
+  'list',       // Ordered mutable collection
+  'dict',       // Key-value pairs
+  'tuple',      // Ordered immutable collection
+  'bool',       // Boolean values: True or False
+  'set',        // Unordered collection of unique elements
+  'NoneType',   // Represents the None value
+  'bytes',      // Byte sequences
+  'error',      // Error or exception
+];
 
 // Dictionary to store the real paths of scripts
 const scriptPaths = {};
@@ -21,12 +35,8 @@ document.addEventListener('DOMContentLoaded', () => {
   const themeToggleBtn = document.getElementById('theme-toggle-btn');
   const addScriptBtn = document.getElementById('add-script-btn');
   const scriptsList = document.getElementById('scripts-list-ul');
-
-  // Ensure the button is defined and not duplicated
-  if (!themeToggleBtn) {
-    console.error('Dark mode button not found');
-    return;
-  }
+  const removeAllScriptsBtn = document.getElementById('remove-all-scripts');
+  const removeAllTestsBtn = document.getElementById('remove-all-tests-btn');
 
   // Load theme preference from localStorage
   const currentTheme = localStorage.getItem('theme') || 'light';
@@ -54,7 +64,7 @@ document.addEventListener('DOMContentLoaded', () => {
       if (tab.id === 'test-tab') {
         testContent.style.display = 'block';
         editorContent.style.display = 'none';
-      } else if (tab.id === 'editor-tab'){
+      } else if (tab.id === 'editor-tab') {
         testContent.style.display = 'none';
         editorContent.style.display = 'block';
       }
@@ -89,26 +99,54 @@ document.addEventListener('DOMContentLoaded', () => {
       switch (paramTypeSelect.value) {
         case 'int':
           paramInput.placeholder = 'Enter a number, e.g., 1';
+          paramInput.disabled = false;
           break;
         case 'float':
           paramInput.placeholder = 'Enter a decimal number, e.g., 3.14';
+          paramInput.disabled = false;
           break;
         case 'str':
-          paramInput.placeholder = 'Enter text, e.g., "hello"';
+          paramInput.placeholder = 'Enter text, e.g., hello';
+          paramInput.disabled = false;
           break;
         case 'list':
           paramInput.placeholder = 'Enter a list, e.g., [1, 2, 3]';
+          paramInput.disabled = false;
           break;
         case 'dict':
           paramInput.placeholder = 'Enter a dictionary, e.g., {"key": "value"}';
+          paramInput.disabled = false;
+          break;
+        case 'tuple':
+          paramInput.placeholder = 'Enter a tuple, e.g., (1, 2, 3)';
+          paramInput.disabled = false;
+          break;
+        case 'set':
+          paramInput.placeholder = 'Enter a set, e.g., {1, 2, 3}';
+          paramInput.disabled = false;
           break;
         case 'bool':
           paramInput.placeholder = 'Enter true or false';
+          paramInput.disabled = false;
+          break;
+        case 'NoneType':
+          paramInput.placeholder = 'None selected';
+          paramInput.value = ''; // Clear the input when disabled
+          paramInput.disabled = true; // Disable the input box
+          break;
+        case 'bytes':
+          paramInput.placeholder = 'Enter bytes, e.g., b"hello"';
+          paramInput.disabled = false;
+          break;
+        case 'error':
+          paramInput.placeholder = 'Describe the error, e.g., ValueError';
+          paramInput.disabled = false;
           break;
         default:
           paramInput.placeholder = 'Parameter...';
+          paramInput.disabled = false;
           break;
-      }
+      }      
     };
 
     // Initial call to set the correct placeholder
@@ -165,6 +203,67 @@ document.addEventListener('DOMContentLoaded', () => {
       outputTypeSelect.appendChild(option);
     });
     outputTypeSelect.value = expectedType;
+
+    // Function to update placeholder and behavior based on selected type for expected output
+    const updateOutputPlaceholder = () => {
+      switch (outputTypeSelect.value) {
+        case 'int':
+          expectedOutputInput.placeholder = 'Enter a number, e.g., 1';
+          expectedOutputInput.disabled = false;
+          break;
+        case 'float':
+          expectedOutputInput.placeholder = 'Enter a decimal number, e.g., 3.14';
+          expectedOutputInput.disabled = false;
+          break;
+        case 'str':
+          expectedOutputInput.placeholder = 'Enter text, e.g., hello';
+          expectedOutputInput.disabled = false;
+          break;
+        case 'list':
+          expectedOutputInput.placeholder = 'Enter a list, e.g., [1, 2, 3]';
+          expectedOutputInput.disabled = false;
+          break;
+        case 'dict':
+          expectedOutputInput.placeholder = 'Enter a dictionary, e.g., {"key": "value"}';
+          expectedOutputInput.disabled = false;
+          break;
+        case 'tuple':
+          expectedOutputInput.placeholder = 'Enter a tuple, e.g., (1, 2, 3)';
+          expectedOutputInput.disabled = false;
+          break;
+        case 'set':
+          expectedOutputInput.placeholder = 'Enter a set, e.g., {1, 2, 3}';
+          expectedOutputInput.disabled = false;
+          break;
+        case 'bool':
+          expectedOutputInput.placeholder = 'Enter true or false';
+          expectedOutputInput.disabled = false;
+          break;
+        case 'NoneType':
+          expectedOutputInput.placeholder = 'None selected';
+          expectedOutputInput.value = ''; // Clear the input when disabled
+          expectedOutputInput.disabled = true; // Disable the input box
+          break;
+        case 'bytes':
+          expectedOutputInput.placeholder = 'Enter bytes, e.g., b"hello"';
+          expectedOutputInput.disabled = false;
+          break;
+        case 'error':
+          expectedOutputInput.placeholder = 'Describe the error, e.g., ValueError';
+          expectedOutputInput.disabled = false;
+          break;
+        default:
+          expectedOutputInput.placeholder = 'Expected output...';
+          expectedOutputInput.disabled = false;
+          break;
+      }
+    };
+
+    // Initial call to set the correct placeholder for expected output
+    updateOutputPlaceholder();
+
+    // Add an event listener to update the placeholder on type change
+    outputTypeSelect.addEventListener('change', updateOutputPlaceholder);
 
     // Append input and dropdown to the same row
     testRow.appendChild(expectedOutputInput);
@@ -299,10 +398,11 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
+  // Function to add a script item to the UI
   function addScriptItem(filePath) {
     if (Object.values(scriptPaths).includes(filePath)) {
-        alert('This file has already been added.');
-        return;
+      alert('This file has already been added.');
+      return;
     }
 
     const li = document.createElement('li');
@@ -312,7 +412,7 @@ document.addEventListener('DOMContentLoaded', () => {
     filename.className = 'script-filename';
     let textContent = path.basename(filePath);
     if (textContent.length > 64) {
-        textContent = textContent.slice(0, 64) + '...';
+      textContent = textContent.slice(0, 64) + '...';
     }
     filename.textContent = textContent;
 
@@ -323,17 +423,17 @@ document.addEventListener('DOMContentLoaded', () => {
     editBtn.textContent = '📝';
     editBtn.title = 'Edit this file';
     editBtn.addEventListener('click', () => {
-        ipcRenderer.send('edit-file', scriptPaths[textContent]);
+      ipcRenderer.send('edit-file', scriptPaths[textContent]);
     });
 
     const removeBtn = document.createElement('button');
     removeBtn.textContent = 'Remove';
     removeBtn.className = 'scriptremove-btn';
     removeBtn.addEventListener('click', () => {
-        delete scriptPaths[textContent];
-        li.remove();
+      delete scriptPaths[textContent];
+      li.remove();
     });
-    
+
     const summaryContainer = document.createElement('div');
     summaryContainer.className = 'summary-container';
 
@@ -345,8 +445,8 @@ document.addEventListener('DOMContentLoaded', () => {
     dropdownBtn.textContent = '🔽';
     dropdownBtn.className = 'dropdown-btn';
     dropdownBtn.addEventListener('click', () => {
-        const isExpanded = dropdownContent.classList.toggle('show');
-        dropdownBtn.textContent = isExpanded ? '🔼' : '🔽';
+      const isExpanded = dropdownContent.classList.toggle('show');
+      dropdownBtn.textContent = isExpanded ? '🔼' : '🔽';
     });
 
     summaryContainer.appendChild(resultSummary);
@@ -354,7 +454,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const dropdownContent = document.createElement('div');
     dropdownContent.className = 'dropdown-content';
-    
+
     li.appendChild(filename);
     li.appendChild(editBtn);
     li.appendChild(removeBtn);
@@ -362,8 +462,8 @@ document.addEventListener('DOMContentLoaded', () => {
     li.appendChild(dropdownContent);
     scriptsList.appendChild(li);
   }
-  
-  
+
+  // Function to update the test summary UI for each script
   function updateTestSummary(displayName, summary, details) {
     const scriptItems = document.querySelectorAll('.script-item');
     scriptItems.forEach((item) => {
@@ -374,7 +474,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const { passed, total } = summary;
         const percentage = ((passed / total) * 100).toFixed(0);
         resultSummary.textContent = `Results: ${passed}/${total} (${percentage}%)`;
-  
+
         // Set color based on performance percentage
         if (percentage >= 80) {
           resultSummary.style.color = 'green';
@@ -383,7 +483,7 @@ document.addEventListener('DOMContentLoaded', () => {
         } else {
           resultSummary.style.color = 'red';
         }
-  
+
         dropdownContent.innerHTML = '';
         details.forEach((detail) => {
           const detailItem = document.createElement('div');
@@ -394,20 +494,50 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     });
   }
-  
+
+  // Listener for test results from the main process
   ipcRenderer.on('test-results', (event, results) => {
     for (const [displayName, result] of Object.entries(results)) {
       updateTestSummary(displayName, result.summary, result.results);
     }
   });
-  
 
   // Listener to handle opening the file in the default text editor
   ipcRenderer.on('edit-file', (event, filePath) => {
-    // Logic to open the file using the system's default text editor
     const { shell } = require('electron');
     shell.openPath(filePath).catch((error) => {
       console.error('Failed to open file:', error);
     });
   });
+
+  // Listener for the "Remove All Scripts" button
+  if (removeAllScriptsBtn) {
+    removeAllScriptsBtn.addEventListener('click', () => {
+      if (confirm('Are you sure you want to remove all scripts? This action cannot be undone.')) {
+        // Clear the script paths dictionary
+        for (const key in scriptPaths) {
+          delete scriptPaths[key];
+        }
+
+        // Clear the displayed script list in the UI
+        scriptsList.innerHTML = '';
+      }
+    });
+  } else {
+    console.error('Remove All Scripts button not found.');
+  }
+
+  // Listener for the "Remove All Tests" button
+  if (removeAllTestsBtn) {
+    removeAllTestsBtn.addEventListener('click', () => {
+      if (confirm('Are you sure you want to remove all tests? This action cannot be undone.')) {
+        // Clear the test list in the UI
+        testList.innerHTML = '';
+
+        addTestCase();
+      }
+    });
+  } else {
+    console.error('Remove All Tests button not found.');
+  }
 });

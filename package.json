@@ -4,12 +4,49 @@
   "description": "A UI version of test runner.",
   "main": "./src/main.js",
   "scripts": {
-    "start" : "npx electron .",
+    "start": "npx electron .",
+    "build": "electron-builder",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "Areng",
   "license": "ISC",
   "dependencies": {
+    
+  },
+  "devDependencies": {
+    "electron-builder": "^25.0.5",
     "electron": "^32.0.2"
+  },
+"build": {
+  "appId": "com.example.testrunner_ui",
+  "productName": "Testrunner UI",
+  "directories": {
+    "output": "dist"
+  },
+  "files": [
+    "src/**/*",
+    "main.js",
+    "renderer.js",
+    "styles.css",
+    "index.html",
+    "tester.js"
+  ],
+  "extraResources": [
+    {
+      "from": "src/python_scripts",
+      "to": "python_scripts"
+    }
+  ],
+  "icon": "icon.ico",
+  "win": {
+    "target": "nsis"
+  },
+  "mac": {
+    "target": "dmg"
+  },
+  "linux": {
+    "target": "AppImage"
   }
+}
+
 }

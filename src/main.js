@@ -13,6 +13,7 @@ function createWindow() {
       nodeIntegration: true,
       contextIsolation: false,
     },
+    title: 'Testrunner UI'
   });
 
   win.loadFile('src/ui/index.html');

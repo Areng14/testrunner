@@ -1,11 +1,15 @@
+const { app } = require('electron');
 const { spawn } = require('child_process');
 const path = require('path');
 
 // Function to run the Python CLI testing tool and return results in JSON format
 function runPythonTests(jsonPath, scriptPath) {
   return new Promise((resolve, reject) => {
+    // Correctly locate test.py using app.getAppPath() to handle packaged scenarios
+    const testScriptPath = path.join(app.getAppPath(), '..', 'python_scripts', 'test.py');
+
     // Spawn a Python process to execute the testing script
-    const pythonProcess = spawn('python', [path.join(__dirname, 'test.py'), jsonPath, scriptPath]);
+    const pythonProcess = spawn('python', [testScriptPath, jsonPath, scriptPath]);
 
     // Buffer to collect the output from the Python script
     let output = '';
