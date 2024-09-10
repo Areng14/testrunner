@@ -84,9 +84,11 @@ document.addEventListener('DOMContentLoaded', () => {
     paramInput.placeholder = 'Parameter...';
     paramInput.value = paramValue;
 
+    // Filter 'error' type from the parameters as it is only for expected output
+    const paramTypes = types.filter((type) => type !== 'error');
     const paramTypeSelect = document.createElement('select');
     paramTypeSelect.className = 'param-type-select';
-    types.forEach((type) => {
+    paramTypes.forEach((type) => {
       const option = document.createElement('option');
       option.value = type;
       option.textContent = type;
@@ -138,15 +140,11 @@ document.addEventListener('DOMContentLoaded', () => {
           paramInput.placeholder = 'Enter bytes, e.g., b"hello"';
           paramInput.disabled = false;
           break;
-        case 'error':
-          paramInput.placeholder = 'Describe the error, e.g., ValueError';
-          paramInput.disabled = false;
-          break;
         default:
           paramInput.placeholder = 'Parameter...';
           paramInput.disabled = false;
           break;
-      }      
+      }
     };
 
     // Initial call to set the correct placeholder
@@ -240,7 +238,7 @@ document.addEventListener('DOMContentLoaded', () => {
           expectedOutputInput.disabled = false;
           break;
         case 'NoneType':
-          expectedOutputInput.placeholder = 'None selected';
+          expectedOutputInput.placeholder = '';
           expectedOutputInput.value = ''; // Clear the input when disabled
           expectedOutputInput.disabled = true; // Disable the input box
           break;
@@ -249,8 +247,9 @@ document.addEventListener('DOMContentLoaded', () => {
           expectedOutputInput.disabled = false;
           break;
         case 'error':
-          expectedOutputInput.placeholder = 'Describe the error, e.g., ValueError';
-          expectedOutputInput.disabled = false;
+          expectedOutputInput.placeholder = '';
+          expectedOutputInput.value = ''; // Clear the input when disabled
+          expectedOutputInput.disabled = true; // Disable the input box
           break;
         default:
           expectedOutputInput.placeholder = 'Expected output...';
@@ -305,8 +304,19 @@ document.addEventListener('DOMContentLoaded', () => {
         return [paramValue, paramType];
       });
 
-      const expectedOutput = li.querySelector('.test-row input[type="text"]').value;
+      var expectedOutput = null
       const expectedType = li.querySelector('.output-type-select').value;
+      switch (expectedType) {
+        case "error":
+          expectedOutput = "error";
+          break;
+        case "NoneType":
+          expectedOutput = "none";
+          break;
+        default:
+          expectedOutput = li.querySelector('.test-row input[type="text"]').value;
+          break;
+      }      
 
       tests[JSON.stringify(params)] = [expectedOutput, expectedType];
     });
@@ -314,7 +324,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const jsonData = {
       testfunc: functionName,
       tests: tests,
-      scriptPaths: scriptPaths, // Include the script paths in the saved JSON data
     };
 
     try {
@@ -477,18 +486,33 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Set color based on performance percentage
         if (percentage >= 80) {
-          resultSummary.style.color = 'green';
+          resultSummary.style.color = '#32a852';
         } else if (percentage >= 50) {
-          resultSummary.style.color = 'orange';
+          resultSummary.style.color = '#fcba03';
         } else {
-          resultSummary.style.color = 'red';
+          resultSummary.style.color = '#eb4034';
         }
 
         dropdownContent.innerHTML = '';
         details.forEach((detail) => {
           const detailItem = document.createElement('div');
           detailItem.className = 'detail-item';
-          detailItem.textContent = `Test: ${detail.test} - ${detail.passed ? 'Passed' : 'Failed'}${detail.error ? ` (${detail.error})` : ''}`;
+
+          // Format the test result properly
+          const resultText = `Test: ${detail.test} - ${detail.passed ? 'Passed' : 'Failed'}`;
+          const receivedText = detail.received ? `└─ Got: ${detail.received}` : '└─ Got: undefined';
+
+          // Create and append the main result line
+          const resultLine = document.createElement('div');
+          resultLine.textContent = resultText;
+          detailItem.appendChild(resultLine);
+
+          // Create and append the received line if applicable
+          const receivedLine = document.createElement('div');
+          receivedLine.textContent = receivedText;
+          receivedLine.style.marginLeft = '20px'; // Indent to mimic a nested structure
+          detailItem.appendChild(receivedLine);
+
           dropdownContent.appendChild(detailItem);
         });
       }

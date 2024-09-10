@@ -22,7 +22,19 @@ function runPythonTests(jsonPath, scriptPath) {
     // Handle Python script completion
     pythonProcess.on('close', (code) => {
       try {
-        const results = JSON.parse(output);
+        // Sanitize the output to properly handle Python lists, dicts, and other structures
+        const sanitizedOutput = output
+          .replace(/'/g, '"')                    // Replace single quotes with double quotes for JSON compatibility
+          .replace(/None/g, 'null')              // Replace Python None with JSON null
+          .replace(/True/g, 'true')              // Replace Python True with JSON true
+          .replace(/False/g, 'false')            // Replace Python False with JSON false
+          .replace(/\((.*?)\)/g, '[$1]')         // Replace Python tuples with JSON arrays
+          .replace(/\{(.*?)\}/g, (match) => {    // Handle dictionaries, preserving keys and values
+            return match.replace(/"(.*?)":/g, '"$1":'); // Ensure keys are properly formatted with double quotes
+          })
+          .replace(/,(\s*[\}\]])/g, '$1');       // Remove trailing commas that can cause JSON parsing errors
+
+        const results = JSON.parse(sanitizedOutput);
         if (results.error) {
           reject(`Error: ${results.error}`);
           return;
@@ -43,6 +55,7 @@ function runPythonTests(jsonPath, scriptPath) {
           const testResult = {
             test: result.test,
             passed: result.passed,
+            received: JSON.stringify(result.received), // Ensure the received value is parsed correctly
             error: result.passed ? null : result.error,
           };
 

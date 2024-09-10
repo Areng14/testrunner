@@ -21,13 +21,18 @@ def load_function_from_path(script_path: str, function_name: str):
     except Exception as e:
         return None
 
-def run_function(func, params: str):
+def run_function(func, params: str, expected_error=False):
     """Run the specified function with given parameters."""
     try:
         arguments = [parse_arg(arg) for arg in ast.literal_eval(params)]
         result = func(*arguments)
+        if expected_error:
+            return {"result": f"Expected an error but got {result}", "passed": False}
         return {"result": result, "passed": True}
     except Exception as e:
+        # If any error occurs and an error is expected, pass the test
+        if expected_error:
+            return {"result": "error", "passed": True}
         return {"result": str(e), "passed": False}
 
 def parse_arg(arg):
@@ -71,10 +76,11 @@ def check_test_in_file(script_path: str, tests: dict) -> list:
 
     for param, expected_output in tests.get("tests", {}).items():
         expected_value, expected_type = parse_expected(expected_output)
-        output = run_function(func, param)
+        output = run_function(func, param, expected_error=(expected_type == 'error'))
         test_result = {
             "test": f"{param} => {expected_value}",
-            "passed": output["passed"] and output["result"] == expected_value,
+            "passed": output["passed"] and output["result"] == expected_value if expected_type != 'error' else output["passed"],
+            "received": output["result"],  # Add this line to capture the actual result
             "error": output["result"] if not output["passed"] else None,
         }
         results.append(test_result)
@@ -92,15 +98,29 @@ def parse_expected(expected: list):
             'bool': bool,
             'tuple': tuple,
             'set': set,
+            'list': list,
+            'dict': dict,
             'NoneType': type(None),
             'bytes': bytes,
+            'error': 'error'  # Special handling for errors
         }
         expected_type = type_mapping.get(type_str, str)
+
+        # Handle special cases where conversion is needed
         if type_str == 'bytes':
             return bytes(value, encoding='utf-8'), expected_type
+        if type_str == 'error':
+            return "error", 'error'  # Indicate that an error is expected
+        if type_str == 'NoneType':
+            return None, type(None)  # Return None directly instead of a string
+        if type_str in ['list', 'tuple', 'set', 'dict']:
+            # Convert from JSON formatted string if needed
+            return expected_type(json.loads(value)), expected_type
+
         return expected_type(value), expected_type
-    except Exception:
-        return expected, str
+    except Exception as e:
+        # Handling generic exceptions and returning types as strings
+        return str(e), str
 
 if __name__ == "__main__":
     if len(sys.argv) != 3:
