@@ -490,7 +490,7 @@ document.addEventListener('DOMContentLoaded', () => {
         } else if (percentage >= 50) {
           resultSummary.style.color = '#fcba03';
         } else {
-          resultSummary.style.color = '#eb4034';
+          resultSummary.style.color = 'red';
         }
 
         dropdownContent.innerHTML = '';
@@ -564,4 +564,31 @@ document.addEventListener('DOMContentLoaded', () => {
   } else {
     console.error('Remove All Tests button not found.');
   }
+
+  // Get the button
+  const backToTopButton = document.querySelector('.back-to-top-btn');
+  let isVisible = false;
+  
+  window.onscroll = function () {
+    if (document.body.scrollTop > 100 || document.documentElement.scrollTop > 100) {
+      if (!isVisible) {
+        backToTopButton.classList.add('show');
+        backToTopButton.classList.remove('hide');
+        isVisible = true;
+      }
+    } else {
+      if (isVisible) {
+        backToTopButton.classList.add('hide');
+        backToTopButton.classList.remove('show');
+        isVisible = false;
+      }
+    }
+  };
+  
+  backToTopButton.onclick = function () {
+    window.scrollTo({
+      top: 0,
+      behavior: 'smooth'
+    });
+  };  
 });

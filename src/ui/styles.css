@@ -459,3 +459,33 @@ input[type="text"]:focus {
   border-color: var(--button-bg-color);
   outline: none;
 }
+
+.back-to-top-btn {
+  position: fixed;
+  bottom: -60px; /* Start off-screen */
+  right: 20px;
+  width: 50px; /* Make the button square */
+  height: 50px; /* Make the button square */
+  background-color: #444; /* Dark background color */
+  color: #ffc107; /* Emoji color (yellowish) */
+  border: none;
+  border-radius: 8px; /* Rounded corners */
+  font-size: 24px; /* Size of the emoji */
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center; /* Center the emoji */
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3); /* Add a slight shadow */
+  transition: bottom 0.3s ease-in-out, opacity 0.3s ease-in-out;
+  opacity: 0;
+}
+
+.back-to-top-btn.show {
+  bottom: 20px; /* Slide into view */
+  opacity: 1;
+}
+
+.back-to-top-btn.hide {
+  bottom: -60px; /* Slide out of view */
+  opacity: 0;
+}

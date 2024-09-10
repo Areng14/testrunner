@@ -18,30 +18,7 @@ function createWindow() {
 
   win.loadFile('src/ui/index.html');
 
-  // Create a custom menu with File options
-  const menu = Menu.buildFromTemplate([
-    {
-      label: 'File',
-      submenu: [
-        {
-          label: 'Save Tests',
-          click: async () => {
-            win.webContents.send('save-tests');
-          },
-        },
-        {
-          label: 'Load Tests',
-          click: async () => {
-            win.webContents.send('load-tests');
-          },
-        },
-        { type: 'separator' },
-        { role: 'quit' },
-      ],
-    },
-  ]);
-
-  Menu.setApplicationMenu(menu);
+  Menu.setApplicationMenu(null);
 }
 
 // Function to check if Python is installed
