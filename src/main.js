@@ -67,17 +67,27 @@ async function runTests(jsonData) {
         // Prompt user to decide if they want to proceed
         const response = await dialog.showMessageBox({
           type: 'warning',
-          buttons: ['Cancel', 'Run Anyway'],
+          buttons: ['Cancel', 'Run Anyway', 'Skip File', 'Open in Notepad'],
           defaultId: 0,
           title: 'Warning',
           message: 'Potential Issues Detected',
           detail: `Issues detected in ${displayName}:\n${scanError}\nDo you still want to run the tests?`,
         });
 
-        // If user cancels, skip this script
+        // Handle user response
         if (response.response === 0) {
+          // User chose 'Cancel'
           console.log(`User chose not to run tests for ${displayName}.`);
           alltests[displayName] = { error: 'Test execution canceled by the user due to potential issues.' };
+          continue;
+        } else if (response.response === 2) {
+          // User chose 'Skip File'
+          console.log(`User chose to skip the file ${displayName}.`);
+          continue;
+        } else if (response.response === 3) {
+          // User chose 'Open in Notepad'
+          openFileInEditor(realPath);
+          // Repeat the loop to ask again after viewing in Notepad
           continue;
         }
       }
@@ -101,6 +111,29 @@ async function runTests(jsonData) {
   return alltests;
 }
 
+// Function to open a file in the default text editor (Notepad on Windows)
+function openFileInEditor(filePath) {
+  const platform = process.platform;
+  let command;
+
+  if (platform === 'win32') {
+    command = `notepad "${filePath}"`;
+  } else if (platform === 'darwin') {
+    command = `open "${filePath}"`;
+  } else if (platform === 'linux') {
+    command = `xdg-open "${filePath}"`;
+  } else {
+    console.error('Unsupported platform');
+    return;
+  }
+
+  exec(command, (err) => {
+    if (err) {
+      console.error(`Error opening file: ${err}`);
+    }
+  });
+}
+
 ipcMain.on('show-error-alert', (event, message) => {
   dialog.showErrorBox('Error', message);
 });
@@ -119,16 +152,7 @@ ipcMain.on('run-tests', async (event, jsonData) => {
 ipcMain.on('edit-file', (event, filePath) => {
   const platform = process.platform;
   let command;
-  if (platform === 'win32') {
-    command = `notepad "${filePath}"`;
-  } else if (platform === 'darwin') {
-    command = `open "${filePath}"`;
-  } else if (platform === 'linux') {
-    command = `xdg-open "${filePath}"`;
-  } else {
-    console.error('Unsupported platform');
-    return;
-  }
+  openFileInEditor(filePath)
 
   exec(command, (err) => {
     if (err) {

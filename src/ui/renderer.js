@@ -385,6 +385,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Run Tests button functionality
   runTestBtn.addEventListener('click', () => {
+    const resultSummaries = document.querySelectorAll('.result-summary');
+    resultSummaries.forEach((summary) => {
+      summary.textContent = 'Results: -/- (-%)'; // Reset to default text
+      summary.style.color = '#888'; // Optionally reset any color styling
+    });
+
     const functionName = functionInput.value;
     const tests = {};
 
@@ -462,7 +468,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const resultSummary = document.createElement('span');
     resultSummary.className = 'result-summary';
-    resultSummary.textContent = 'Results: 0/0 (0%)';
+    resultSummary.textContent = 'Results: -/- (-%)';
 
     const dropdownBtn = document.createElement('button');
     dropdownBtn.textContent = '🔽';
@@ -504,7 +510,7 @@ document.addEventListener('DOMContentLoaded', () => {
         } else if (percentage >= 50) {
           resultSummary.style.color = '#fcba03';
         } else {
-          resultSummary.style.color = 'red';
+          resultSummary.style.color = '#eb4034';
         }
 
         dropdownContent.innerHTML = '';
