@@ -16,6 +16,8 @@ function createWindow() {
     title: 'Testrunner UI'
   });
 
+
+  win.webContents.openDevTools();
   win.loadFile('src/ui/index.html');
 
   Menu.setApplicationMenu(null);
@@ -76,6 +78,10 @@ async function runTests(jsonData) {
   // Return the results if needed elsewhere
   return alltests;
 }
+
+ipcMain.on('show-error-alert', (event, message) => {
+  dialog.showErrorBox('Error', message);
+});
 
 // Handle request from renderer to run tests
 ipcMain.on('run-tests', async (event, jsonData) => {

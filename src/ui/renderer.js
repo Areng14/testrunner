@@ -74,6 +74,18 @@ document.addEventListener('DOMContentLoaded', () => {
   testContent.style.display = 'block';
   tabs[0].classList.add('active');
 
+  function refreshInputs() {
+    setTimeout(() => {
+      // Force focus to the window
+      window.focus();
+      // Optionally, re-focus specific inputs if needed
+      document.querySelectorAll('input, textarea, select').forEach((input) => {
+        input.focus();
+        input.blur(); // Quickly toggle focus to refresh state
+      });
+    }, 100); // Delay to ensure actions are registered
+  }
+
   // Function to add a parameter row with type selector
   function addParameterRow(paramList, paramValue = '', paramType = 'any') {
     const paramRow = document.createElement('div');
@@ -331,6 +343,7 @@ document.addEventListener('DOMContentLoaded', () => {
       console.log(result); // Log the success message from the main process
     } catch (error) {
       console.error('Error saving data:', error); // Log error if any occurs
+      ipcRenderer.send('show-error-alert', `Error saving test data: ${error}`);
     }
   }
 
@@ -366,6 +379,7 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     } catch (error) {
       console.error('Error loading test file:', error);
+      ipcRenderer.send('show-error-alert', `Error loading test data: ${error}`);
     }
   });
 
@@ -531,39 +545,112 @@ document.addEventListener('DOMContentLoaded', () => {
     const { shell } = require('electron');
     shell.openPath(filePath).catch((error) => {
       console.error('Failed to open file:', error);
+      ipcRenderer.send('show-error-alert', `Failed to open file: ${error}`);
     });
   });
 
   // Listener for the "Remove All Scripts" button
   if (removeAllScriptsBtn) {
     removeAllScriptsBtn.addEventListener('click', () => {
-      if (confirm('Are you sure you want to remove all scripts? This action cannot be undone.')) {
-        // Clear the script paths dictionary
-        for (const key in scriptPaths) {
-          delete scriptPaths[key];
-        }
+      showConfirmationDialog('Are you sure you want to remove all scripts?\n\nThis action cannot be undone.', (confirmed) => {
+        if (confirmed) {
+          // Clear the script paths dictionary
+          for (const key in scriptPaths) {
+            delete scriptPaths[key];
+          }
 
-        // Clear the displayed script list in the UI
-        scriptsList.innerHTML = '';
-      }
+          // Clear the displayed script list in the UI
+          scriptsList.innerHTML = '';
+        }
+      });
     });
   } else {
     console.error('Remove All Scripts button not found.');
   }
 
-  // Listener for the "Remove All Tests" button
-  if (removeAllTestsBtn) {
-    removeAllTestsBtn.addEventListener('click', () => {
-      if (confirm('Are you sure you want to remove all tests? This action cannot be undone.')) {
-        // Clear the test list in the UI
-        testList.innerHTML = '';
+  // Include this in your renderer.js
+  function showConfirmationDialog(message, callback) {
+    // Modal elements
+    const dialog = document.getElementById('confirmation-dialog');
+    const confirmationMessage = document.getElementById('confirmation-message');
+    const confirmYesBtn = document.getElementById('confirm-yes');
+    const confirmNoBtn = document.getElementById('confirm-no');
 
-        addTestCase();
+    // Set the message
+    confirmationMessage.textContent = message;
+
+    // Show the modal
+    dialog.style.display = 'block';
+
+    // Save the currently focused element
+    const activeElement = document.activeElement;
+
+    // Set focus to the confirm button
+    confirmYesBtn.focus();
+
+    // Event handler to capture response
+    const handleResponse = (response) => {
+      // Hide the modal
+      dialog.style.display = 'none';
+
+      // Remove event listeners
+      confirmYesBtn.removeEventListener('click', onYes);
+      confirmNoBtn.removeEventListener('click', onNo);
+      document.removeEventListener('keydown', onKeyDown);
+      dialog.removeEventListener('click', onBackdropClick);
+
+      // Restore focus
+      if (activeElement) {
+        activeElement.focus();
+      }
+
+      // Callback with the user's response
+      callback(response);
+    };
+
+    const onYes = () => handleResponse(true);
+    const onNo = () => handleResponse(false);
+
+    // Keyboard accessibility
+    const onKeyDown = (event) => {
+      if (event.key === 'Escape') {
+        handleResponse(false);
+      } else if (event.key === 'Enter') {
+        handleResponse(true);
+      }
+    };
+
+    // Close modal if clicking outside content
+    const onBackdropClick = (event) => {
+      if (event.target === dialog) {
+        handleResponse(false);
+      }
+    };
+
+    // Attach event listeners
+    confirmYesBtn.addEventListener('click', onYes);
+    confirmNoBtn.addEventListener('click', onNo);
+    document.addEventListener('keydown', onKeyDown);
+    dialog.addEventListener('click', onBackdropClick);
+  }
+
+  // Update your removeAllTestsBtn event listener
+  removeAllTestsBtn.addEventListener('click', () => {
+    showConfirmationDialog('Are you sure you want to remove all tests?\n\nThis action cannot be undone.', (confirmed) => {
+      if (confirmed) {
+        // Clear the test list
+        while (testList.firstChild) {
+          testList.removeChild(testList.firstChild);
+        }
+
+        // Add a new test case
+        addTestCase([], '', 'any');
+
+        console.log("Finished removing all tests.");
       }
     });
-  } else {
-    console.error('Remove All Tests button not found.');
-  }
+  });
+  
 
   // Get the button
   const backToTopButton = document.querySelector('.back-to-top-btn');

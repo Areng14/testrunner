@@ -489,3 +489,71 @@ input[type="text"]:focus {
   bottom: -60px; /* Slide out of view */
   opacity: 0;
 }
+
+/* Modal container */
+.modal {
+  display: none; /* Hidden by default */
+  position: fixed;
+  z-index: 999; /* Sit on top */
+  left: 0;
+  top: 0;
+  width: 100%; /* Full width */
+  height: 100%; /* Full height */
+  overflow: hidden; /* Disable scrolling while modal is open */
+  background-color: rgba(0, 0, 0, 0.5); /* Black background with opacity */
+}
+
+/* Modal content box */
+.modal-content {
+  background-color: #fefefe;
+  margin: 15% auto; /* Centered */
+  padding: 20px;
+  border: 1px solid #888;
+  width: 80%; /* Adjust as needed */
+  max-width: 400px;
+  border-radius: 8px;
+  text-align: center;
+}
+
+/* Modal buttons */
+.modal-buttons {
+  margin-top: 20px;
+  display: flex;
+  justify-content: space-around;
+}
+
+.modal-button {
+  padding: 8px 15px;
+  border: 1px solid var(--border-color);
+  background-color: var(--button-bg-color-gray);
+  color: var(--button-text-color);
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: background-color 0.3s, color 0.3s, border-color 0.3s;
+  outline: none;
+  margin-bottom: 10px;
+}
+
+#confirm-yes {
+  background-color: #e74c3c;
+}
+
+#confirm-no {
+  background-color: var(--button-bg-color-green);
+}
+
+/* Optional: Add styles for dark mode */
+body.dark-mode .modal-content {
+  background-color: #333;
+  color: #fff;
+}
+
+body.dark-mode .modal-button {
+  background-color: #555;
+  color: #fff;
+}
+
+body.dark-mode .modal-button:hover {
+  background-color: #666;
+}
