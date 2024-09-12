@@ -3,7 +3,8 @@ const fs = require('fs');
 const os = require('os');
 const path = require('path');
 const { exec } = require('child_process');
-const runPythonTests = require('./tester');
+const runPythonTests = require('./tester'); // Make sure this path points to your tester module
+const scanPythonScript = require('./scanPythonScript'); // Include your script scanning function
 
 function createWindow() {
   const win = new BrowserWindow({
@@ -13,12 +14,10 @@ function createWindow() {
       nodeIntegration: true,
       contextIsolation: false,
     },
-    title: 'Testrunner UI'
+    title: 'Testrunner UI',
   });
 
-
   win.loadFile('src/ui/index.html');
-
   Menu.setApplicationMenu(null);
 }
 
@@ -43,7 +42,7 @@ function checkPythonInstallation() {
 
 // Function to run tests and display their details
 async function runTests(jsonData) {
-  const { testfunc, tests, scriptPaths } = jsonData;
+  const { scriptPaths } = jsonData;
 
   // Create a temporary file for the JSON data
   const tempDir = os.tmpdir();
@@ -59,7 +58,31 @@ async function runTests(jsonData) {
   // Iterate over each script path and run the Python tests
   for (const [displayName, realPath] of Object.entries(scriptPaths)) {
     try {
-      // Await the result of runPythonTests
+      // Step 1: Scan the script for safety before running tests
+      try {
+        await scanPythonScript(realPath);
+        console.log(`Safety scan passed for ${displayName}.`);
+      } catch (scanError) {
+        console.warn(`Potential issues detected in ${displayName}: ${scanError}`);
+        // Prompt user to decide if they want to proceed
+        const response = await dialog.showMessageBox({
+          type: 'warning',
+          buttons: ['Cancel', 'Run Anyway'],
+          defaultId: 0,
+          title: 'Warning',
+          message: 'Potential Issues Detected',
+          detail: `Issues detected in ${displayName}:\n${scanError}\nDo you still want to run the tests?`,
+        });
+
+        // If user cancels, skip this script
+        if (response.response === 0) {
+          console.log(`User chose not to run tests for ${displayName}.`);
+          alltests[displayName] = { error: 'Test execution canceled by the user due to potential issues.' };
+          continue;
+        }
+      }
+
+      // Step 2: Run the Python tests if the script passes the scan or user chooses to proceed
       const testResult = await runPythonTests(filePath, realPath);
       alltests[displayName] = testResult;
     } catch (error) {
@@ -85,10 +108,7 @@ ipcMain.on('show-error-alert', (event, message) => {
 // Handle request from renderer to run tests
 ipcMain.on('run-tests', async (event, jsonData) => {
   try {
-    // Run the tests and collect results
     const results = await runTests(jsonData);
-
-    // Send the results back to the renderer process
     event.reply('test-results', results); // Sends the results back to the renderer
   } catch (error) {
     console.error('Error running tests:', error);
@@ -98,7 +118,6 @@ ipcMain.on('run-tests', async (event, jsonData) => {
 
 ipcMain.on('edit-file', (event, filePath) => {
   const platform = process.platform;
-
   let command;
   if (platform === 'win32') {
     command = `notepad "${filePath}"`;

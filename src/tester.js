@@ -24,15 +24,15 @@ function runPythonTests(jsonPath, scriptPath) {
       try {
         // Sanitize the output to properly handle Python lists, dicts, and other structures
         const sanitizedOutput = output
-          .replace(/'/g, '"')                    // Replace single quotes with double quotes for JSON compatibility
-          .replace(/None/g, 'null')              // Replace Python None with JSON null
-          .replace(/True/g, 'true')              // Replace Python True with JSON true
-          .replace(/False/g, 'false')            // Replace Python False with JSON false
-          .replace(/\((.*?)\)/g, '[$1]')         // Replace Python tuples with JSON arrays
-          .replace(/\{(.*?)\}/g, (match) => {    // Handle dictionaries, preserving keys and values
-            return match.replace(/"(.*?)":/g, '"$1":'); // Ensure keys are properly formatted with double quotes
+          .replace(/'/g, '"')
+          .replace(/None/g, 'null')
+          .replace(/True/g, 'true')
+          .replace(/False/g, 'false')
+          .replace(/\((.*?)\)/g, '[$1]')
+          .replace(/\{(.*?)\}/g, (match) => {
+            return match.replace(/"(.*?)":/g, '"$1":');
           })
-          .replace(/,(\s*[\}\]])/g, '$1');       // Remove trailing commas that can cause JSON parsing errors
+          .replace(/,(\s*[\}\]])/g, '$1');
 
         const results = JSON.parse(sanitizedOutput);
         if (results.error) {
@@ -40,7 +40,6 @@ function runPythonTests(jsonPath, scriptPath) {
           return;
         }
 
-        // Initialize an object to store the test results
         const testResults = {
           results: [],
           summary: {
@@ -50,27 +49,23 @@ function runPythonTests(jsonPath, scriptPath) {
           },
         };
 
-        // Process each test result
         results.forEach((result) => {
           const testResult = {
             test: result.test,
             passed: result.passed,
-            received: JSON.stringify(result.received), // Ensure the received value is parsed correctly
+            received: JSON.stringify(result.received),
             error: result.passed ? null : result.error,
           };
 
-          // Update summary counts
           if (result.passed) {
             testResults.summary.passed += 1;
           } else {
             testResults.summary.failed += 1;
           }
 
-          // Add individual test result to the results array
           testResults.results.push(testResult);
         });
 
-        // Resolve the promise with the structured test results
         resolve(testResults);
       } catch (err) {
         reject(`Failed to parse Python output: ${err.message}`);
