@@ -303,49 +303,52 @@ document.addEventListener('DOMContentLoaded', () => {
     await saveTests(); // Call the saveTests function directly
   });
 
-  // Function to collect data and save tests
   async function saveTests() {
     console.log('Initiating save tests...'); // Log to ensure the process starts
     const functionName = functionInput.value || 'function_name';
     const tests = {};
-
+  
     testList.querySelectorAll('li').forEach((li) => {
       const params = Array.from(li.querySelectorAll('.param-row')).map((row) => {
         const paramValue = row.querySelector('input[type="text"]').value;
         const paramType = row.querySelector('.param-type-select').value;
         return [paramValue, paramType];
       });
-
-      var expectedOutput = null
+  
+      let expectedOutput = null;
       const expectedType = li.querySelector('.output-type-select').value;
       switch (expectedType) {
-        case "error":
-          expectedOutput = "error";
+        case 'error':
+          expectedOutput = 'error';
           break;
-        case "NoneType":
-          expectedOutput = "none";
+        case 'NoneType':
+          expectedOutput = 'none';
           break;
         default:
           expectedOutput = li.querySelector('.test-row input[type="text"]').value;
           break;
-      }      
-
+      }
+  
       tests[JSON.stringify(params)] = [expectedOutput, expectedType];
     });
-
+  
     const jsonData = {
       testfunc: functionName,
       tests: tests,
     };
-
+  
     try {
       const result = await ipcRenderer.invoke('save-json-data', jsonData);
       console.log(result); // Log the success message from the main process
     } catch (error) {
       console.error('Error saving data:', error); // Log error if any occurs
-      ipcRenderer.send('show-error-alert', `Error saving test data: ${error}`);
+  
+      // Check if the error is not an abort error before showing the alert
+      if (!error.message.includes('abort')) {
+        ipcRenderer.send('show-error-alert', `Error saving test data: ${error}`);
+      }
     }
-  }
+  }  
 
   // Load Tests button functionality
   loadTestBtn.addEventListener('click', async () => {
@@ -379,7 +382,9 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     } catch (error) {
       console.error('Error loading test file:', error);
-      ipcRenderer.send('show-error-alert', `Error loading test data: ${error}`);
+      if (!error.message.includes('abort')) {
+        ipcRenderer.send('show-error-alert', `Error loading test data: ${error}`);
+      }
     }
   });
 
@@ -551,7 +556,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const { shell } = require('electron');
     shell.openPath(filePath).catch((error) => {
       console.error('Failed to open file:', error);
-      ipcRenderer.send('show-error-alert', `Failed to open file: ${error}`);
+      if (!error.message.includes('abort')) {
+        ipcRenderer.send('show-error-alert', `Failed to open file: ${error}`);
+      }
     });
   });
 
