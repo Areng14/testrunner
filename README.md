@@ -95,5 +95,3 @@ Contributions are welcome! Please fork the repository and submit a pull request 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
 ---
-
-This README provides a comprehensive overview of your Electron-based test runner application. Feel free to adjust any section to better fit your project's specifics or any additional features you might want to highlight!
