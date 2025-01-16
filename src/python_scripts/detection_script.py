@@ -40,7 +40,6 @@ DANGEROUS_IMPORTS = {
     'importlib': 'Import of importlib detected, potentially used for dynamic imports'
 }
 
-# Enhanced suspicious patterns
 SUSPICIOUS_PATTERNS = {
     r'b64decode': 'Base64 decoding detected, potentially used for decoding obfuscated data',
     r'hex': 'Hexadecimal operation detected, potentially used for encoding or obfuscating data',
@@ -62,7 +61,6 @@ SUSPICIOUS_PATTERNS = {
     r'chr\([0-9]+\)': 'Character code conversion detected'
 }
 
-# Suspicious variable names
 SUSPICIOUS_VARS = {
     'sh': 'Short name potentially hiding shell access',
     'sys': 'System access variable',
@@ -77,16 +75,16 @@ SUSPICIOUS_VARS = {
 
 def detect_obfuscated_strings(node: ast.AST) -> str:
     """Check for suspiciously encoded strings that might be hiding malicious code."""
-    if isinstance(node, ast.Str):
+    if isinstance(node, ast.Constant) and isinstance(node.value, str):
         # Check for base64-like strings
-        if re.match(r'^[A-Za-z0-9+/=]{20,}$', node.s):
-            return f"Suspicious base64-like string detected: '{node.s[:30]}...'"
+        if re.match(r'^[A-Za-z0-9+/=]{20,}$', node.value):
+            return f"Suspicious base64-like string detected: '{node.value[:30]}...'"
         # Check for hex strings
-        if re.match(r'^[0-9A-Fa-f]+$', node.s):
-            return f"Suspicious hex string detected: '{node.s[:30]}...'"
-        # Check for strings with lots of backslashes (possible escape sequences)
-        if node.s.count('\\') > 5:
-            return f"Suspicious escaped string detected: '{node.s[:30]}...'"
+        if re.match(r'^[0-9A-Fa-f]+$', node.value):
+            return f"Suspicious hex string detected: '{node.value[:30]}...'"
+        # Check for strings with lots of backslashes
+        if node.value.count('\\') > 5:
+            return f"Suspicious escaped string detected: '{node.value[:30]}...'"
     return ''
 
 def get_attribute_chain(node):
@@ -100,12 +98,12 @@ def get_attribute_chain(node):
         attrs.append(current.id)
     return '.'.join(reversed(attrs))
 
-def scan_script(file_path: str) -> None:
+def scan_script(file_path: str) -> list:
     """Scan the given Python file for dangerous operations, obfuscated code, and imports."""
     issues = []
 
     try:
-        with open(file_path, 'r') as file:
+        with open(file_path, 'r', encoding='utf-8') as file:
             content = file.read()
             tree = ast.parse(content, filename=file_path)
 
@@ -113,31 +111,31 @@ def scan_script(file_path: str) -> None:
         for node in ast.walk(tree):
             # Check function calls
             if isinstance(node, ast.Call):
-                if hasattr(node.func, 'attr'):
+                if isinstance(node.func, ast.Attribute) and isinstance(node.func.value, ast.Name):
                     func_name = f"{node.func.value.id}.{node.func.attr}"
                     if func_name in DANGEROUS_CALLS:
-                        issues.append(f"{DANGEROUS_CALLS[func_name]} in {file_path} at line {node.lineno}")
+                        issues.append(f"{DANGEROUS_CALLS[func_name]} at line {node.lineno}")
 
                 if isinstance(node.func, ast.Name):
                     for pattern, description in SUSPICIOUS_PATTERNS.items():
                         if re.search(pattern, node.func.id):
-                            issues.append(f"{description} in {file_path} at line {node.lineno}")
+                            issues.append(f"{description} at line {node.lineno}")
 
             # Check variable names
             if isinstance(node, ast.Name):
                 if node.id in SUSPICIOUS_VARS:
-                    issues.append(f"{SUSPICIOUS_VARS[node.id]} in {file_path} at line {node.lineno}")
+                    issues.append(f"{SUSPICIOUS_VARS[node.id]} at line {node.lineno}")
 
             # Check attribute chains
             if isinstance(node, ast.Attribute):
                 attr_chain = get_attribute_chain(node)
                 if any(pattern in attr_chain for pattern in ['__class__', '__base__', '__subclasses__', '__globals__', '__dict__']):
-                    issues.append(f"Suspicious attribute chain detected: {attr_chain} in {file_path} at line {node.lineno}")
+                    issues.append(f"Suspicious attribute chain detected: {attr_chain} at line {node.lineno}")
 
             # Check for obfuscated strings
             obfuscation_issue = detect_obfuscated_strings(node)
             if obfuscation_issue:
-                issues.append(f"{obfuscation_issue} in {file_path} at line {node.lineno}")
+                issues.append(f"{obfuscation_issue} at line {getattr(node, 'lineno', '?')}")
 
         # Scan for dangerous imports
         for node in ast.walk(tree):
@@ -145,22 +143,17 @@ def scan_script(file_path: str) -> None:
                 for alias in node.names:
                     module_name = alias.name.split('.')[0]
                     if module_name in DANGEROUS_IMPORTS:
-                        issues.append(f"{DANGEROUS_IMPORTS[module_name]} in {file_path} at line {node.lineno}")
+                        issues.append(f"{DANGEROUS_IMPORTS[module_name]} at line {node.lineno}")
 
         # Additional check for suspicious string patterns in the entire file
         for pattern, description in SUSPICIOUS_PATTERNS.items():
             if re.search(pattern, content):
                 issues.append(f"{description} found in file content")
 
-        # Print all detected issues or a safe message
-        if issues:
-            for issue in issues:
-                print(f"Warning: {issue}")
-        else:
-            print(f"No dangerous functions, obfuscation, or imports detected in {file_path}.")
+        return issues
 
     except Exception as e:
-        print(f"Error scanning {file_path}: {e}")
+        return [f"Error scanning file: {str(e)}"]
 
 if __name__ == "__main__":
     if len(sys.argv) != 2:
@@ -168,4 +161,10 @@ if __name__ == "__main__":
         sys.exit(1)
 
     script_path = sys.argv[1]
-    scan_script(script_path)
+    issues = scan_script(script_path)
+    
+    if issues:
+        for issue in issues:
+            print(f"Warning: {issue}")
+    else:
+        print("No dangerous functions, obfuscation, or imports detected.")
